@@ -1,31 +1,35 @@
-﻿import time
-
+import time
+import os
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select,WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC, select
 from selenium.webdriver.chrome.options import Options
 
-data_path = r"../../Dataset/Jockey.csv"
+#データを保存する場所
+data_path = "../../Dataset/"
+
+#chromedriver.exeのパス
+#変更して使用してください
 driver_path = r"../../chromedriver_win32/chromedriver"
 
+#netkeibaのデータベースURL
+URL = "https://db.netkeiba.com/?pid=race_search_detail"
+
+#seleniumの各種設定
 options = Options()
 #options.add_argument('--headless')    # ヘッドレスモードに
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 driver = webdriver.Chrome(driver_path,chrome_options=options) 
-wait = WebDriverWait(driver,10)
-
-URL = "https://db.netkeiba.com/?pid=race_search_detail"
+wait = WebDriverWait(driver,100)
 driver.get(URL)
 time.sleep(1)
 wait.until(EC.presence_of_all_elements_located)
 
-# 月ごとに検索
+# 期間を選択
 begin_year = 2010
 begin_month = 1
 end_year = 2021
 end_month = 12
-
-# 期間を選択
 start_year_element = driver.find_element_by_name('start_year')
 start_year_select = Select(start_year_element)
 start_year_select.select_by_value(str(begin_year))
@@ -46,17 +50,13 @@ for i in range(1,11):
 
 # 重賞を選択
 class_element = driver.find_elements_by_xpath('//*[@id="db_search_detail_form"]/form/table/tbody/tr[8]/td//input')
-select_element = class_element[4]
+select_element = class_element[0]
 select_element.click()
-select_element = class_element[5]
+select_element = class_element[1]
 select_element.click()
-select_element = class_element[6]
+select_element = class_element[2]
 select_element.click()
-"""
-for i in range(4):
-    select_element = class_element[i]
-    select_element.click()
-"""
+
 # 表示件数を選択(20,50,100の中から最大の100へ)
 list_element = driver.find_element_by_name('list')
 list_select = Select(list_element)
@@ -68,9 +68,12 @@ frm.submit()
 time.sleep(5)
 wait.until(EC.presence_of_all_elements_located)
 
-with open("../../Dataset/"+str(begin_year)+str(begin_month)+"-"+str(end_year)+str(end_month)+"1600万-500万"+".txt", mode='w') as f:
+#保存ファイル名を指定
+file_name = str(begin_year)+str(begin_month)+"-"+str(end_year)+str(end_month)+".txt"
+
+with open(os.path.join(data_path,file_name),mode='w') as f:
     while True:
-        time.sleep(5)
+        time.sleep(10)
         wait.until(EC.presence_of_all_elements_located)
         all_rows = driver.find_element_by_class_name('race_table_01').find_elements_by_tag_name("tr")
         for row in range(1, len(all_rows)):
