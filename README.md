@@ -1,2 +1,2 @@
 # KeibaAI
-Predict horse-race
+3着以内に入る馬を予想します．
