@@ -1,16 +1,12 @@
 # KeibaAI
 
-**About**
-
+## About
 3着以内に入る馬を予想します．
 
-**Requirements**
-
+## Requirements
 requirements.txtを参照
 
-**How to use**
-
-
+## How to use
 GetUrls.py:レースURLを取得
 
 ↓
