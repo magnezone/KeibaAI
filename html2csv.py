@@ -1,4 +1,4 @@
-﻿from os import PathLike
+﻿from os import PathLike, name
 from bs4 import BeautifulSoup
 import glob
 import requests
@@ -8,8 +8,7 @@ import os
 netkeiba = r"https://db.netkeiba.com"
 root = r"../../Dataset/new/"
 
-#日付,年齢,性別,斤量,騎手,馬番,馬体重,単勝オッズ,前走馬番,前走着順
-#前走優勝賞金,前走距離,前走タイム差,前走後3Fタイム,連対率,着順
+#日付,レース番号.レース種類,レース距離,年齢,性別,斤量,騎手,馬番,馬体重,単勝オッズ,着順,タイム
 date = 0
 race_number = 0
 race_type = 0
@@ -24,7 +23,7 @@ horse_weight = 0
 win_odds = 0
 result = 0
 time = 0
-
+#前走：馬番,着順,優勝賞金,距離,タイム,タイム差,後3Fタイム,着順
 prev_head_count = 0
 prev_horse_number = 0
 prev_prize = 0
@@ -34,7 +33,7 @@ prev_time = 0
 prev_time_diff = 0
 prev_last3f = 0
 prev_result = 0
-
+#前々走：馬番,着順,優勝賞金,距離,タイム,タイム差,後3Fタイム,着順
 preprev_head_count = 0
 preprev_horse_number = 0
 preprev_prize = 0
@@ -44,13 +43,14 @@ preprev_time = 0
 preprev_time_diff = 0
 preprev_last3f = 0
 preprev_result = 0
-
+#連対率,着順,脚質
 race_count = 0
 win2_ratio = 0
-
 LegQuality = 0
 
-data = ["日付","レース番号","種類","距離","年齢","性別","斤量","騎手","馬番","頭数","馬体重","単勝オッズ","着順","タイム","前走頭数","前走馬番","前走優勝賞金","前走種類","前走距離","前走タイム","前走タイム差","前走後3Fタイム","前走着順","前々走頭数","前々走馬番","前々走優勝賞金","前々走種類","前々走距離","前々走タイム","前々走タイム差","前々走後3Fタイム","前々走着順","総レース数","連対率"]
+data = ["日付","レース番号","種類","距離","年齢","性別","斤量","騎手","馬番","頭数","馬体重","単勝オッズ","着順","タイム",
+    "前走頭数","前走馬番","前走優勝賞金","前走種類","前走距離","前走タイム","前走タイム差","前走後3Fタイム","前走着順",
+    "前々走頭数","前々走馬番","前々走優勝賞金","前々走種類","前々走距離","前々走タイム","前々走タイム差","前々走後3Fタイム","前々走着順","総レース数","連対率","脚質"]
 
 with open(r"../../Dataset/Data1600-500.csv","w",newline = "")as f1:
     writer = csv.writer(f1)
