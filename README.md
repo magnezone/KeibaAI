@@ -21,4 +21,8 @@ html2csv.py:HTMLからデータを抽出しcsvで保存
 
 ↓
 
-後日追記予定...
+LightGBM_clusterring1.py:csvデータを用いて学習
+
+↓
+
+run_clusterring_future.py:レース予想
