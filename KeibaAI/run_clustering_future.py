@@ -10,14 +10,13 @@ import pandas as pd
 import numpy as np
 
 netkeiba = r"https://db.netkeiba.com"
-root = r"../../Dataset/html/"
 path = r"https://race.netkeiba.com/race/shutuba.html?race_id=202204030212"
 
 model1 = lgb.Booster(model_file = "model_clusterring.txt")
 model2 = lgb.Booster(model_file = "model_regression2.txt")
 
 jockeys = {}
-with open(r"../../Dataset/Jockey.csv") as f:
+with open(r"Dataset/Jockey.csv") as f:
     reader = csv.reader(f)
     reader.__next__()
     for row in reader:
