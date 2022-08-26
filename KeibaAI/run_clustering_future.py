@@ -10,10 +10,10 @@ import pandas as pd
 import numpy as np
 
 netkeiba = r"https://db.netkeiba.com"
-path = r"https://race.netkeiba.com/race/shutuba.html?race_id=202204030212"
+path = r"https://race.netkeiba.com/race/shutuba.html?race_id=202201020411"
 
-model1 = lgb.Booster(model_file = "model_clusterring.txt")
-model2 = lgb.Booster(model_file = "model_regression2.txt")
+model1 = lgb.Booster(model_file = r"Dataset/model_clusterring.txt")
+model2 = lgb.Booster(model_file = r"Dataset/model_regression2.txt")
 
 jockeys = {}
 with open(r"Dataset/Jockey.csv") as f:
