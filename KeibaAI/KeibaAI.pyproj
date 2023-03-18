@@ -33,6 +33,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Dataset\Jockey.csv" />
+    <Content Include="Dataset\model_clusterring.txt" />
+    <Content Include="Dataset\model_regression2.txt" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="CondaEnv|CondaEnv|NNKeiba" />
