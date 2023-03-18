@@ -19,6 +19,10 @@ def convert_date(date:str):
     return res
 
 netkeiba = r"https://db.netkeiba.com"
+<<<<<<< HEAD
+=======
+path = r"https://race.netkeiba.com/race/shutuba.html?race_id=202204030212"
+>>>>>>> 42457c6d37512a4384eca199f22411e2b719c1a4
 
 model1 = lgb.Booster(model_file = r"Dataset/model_clusterring.txt")
 model2 = lgb.Booster(model_file = r"Dataset/model_regression2.txt")
