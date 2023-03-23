@@ -9,9 +9,17 @@ import lightgbm as lgb
 import pandas as pd
 import numpy as np
 
-netkeiba = r"https://db.netkeiba.com"
-path = r"https://race.netkeiba.com/race/shutuba.html?race_id=202201020312"
+def convert_date(date:str):
+    res = ""
+    results = re.findall("\d+",date)
+    for i in range(len(results)):
+        if(len(results[i]) < 2):
+            results[i] = "0"+ results[i]
+        res += results[i]
+    return res
 
+netkeiba = r"https://db.netkeiba.com"
+path = r"https://race.netkeiba.com/race/shutuba.html?race_id=202307010511"
 model1 = lgb.Booster(model_file = r"Dataset/model_clusterring.txt")
 model2 = lgb.Booster(model_file = r"Dataset/model_regression2.txt")
 
@@ -116,52 +124,53 @@ for element in elements:
         for horse_element in horse_elements[1:]:
             try:
                 horse_line = horse_element.findAll("td")
-                if(flag == 0):
-                    prev_result = horse_line[11].text
-                    prev_head_count = horse_line[6].text
-                    prev_horse_number = horse_line[8].text
-                    if(horse_line[14].text[0] == "ダ"):
-                            prev_race_type = "ダート"
+                if(int(horse_line[0].text.replace("/","")) < int(race_num[:4]+convert_date(date))):
+                    if(flag == 0):
+                        prev_result = horse_line[11].text
+                        prev_head_count = horse_line[6].text
+                        prev_horse_number = horse_line[8].text
+                        if(horse_line[14].text[0] == "ダ"):
+                                prev_race_type = "ダート"
+                        else:
+                            prev_race_type = horse_line[14].text[0]
+                        prev_length = horse_line[14].text[1:]
+                        prev_time = "0"+horse_line[17].text
+                        prev_time_diff = horse_line[18].text
+                        prev_last3f = float(horse_line[22].text)
+                        if(int(horse_line[11].text) <= 3):
+                            place_number += 1
+                        race_detail = horse_line[4].find("a")
+                        res = requests.get(netkeiba+race_detail.get("href"))
+                        res.encoding = res.apparent_encoding
+                        soup = BeautifulSoup(res.text,"html.parser")
+                        table = soup.find("table",class_="race_table_01 nk_tb_common")
+                        elements = table.findAll("tr")
+                        prev_prize = elements[1].findAll("td")[20].text
+                    elif(flag == 1):
+                        preprev_result = horse_line[11].text
+                        preprev_head_count = horse_line[6].text
+                        preprev_horse_number = horse_line[8].text
+                        if(horse_line[14].text[0] == "ダ"):
+                                preprev_race_type = "ダート"
+                        else:
+                            preprev_race_type = horse_line[14].text[0]
+                        preprev_length = horse_line[14].text[1:]
+                        preprev_time = "0"+horse_line[17].text
+                        preprev_time_diff = horse_line[18].text
+                        preprev_last3f = float(horse_line[22].text)
+                        if(int(horse_line[11].text) <= 3):
+                            place_number += 1
+                        race_detail = horse_line[4].find("a")
+                        res = requests.get(netkeiba+race_detail.get("href"))
+                        res.encoding = res.apparent_encoding
+                        soup = BeautifulSoup(res.text,"html.parser")
+                        table = soup.find("table",class_="race_table_01 nk_tb_common")
+                        elements = table.findAll("tr")
+                        preprev_prize = elements[1].findAll("td")[20].text
                     else:
-                        prev_race_type = horse_line[14].text[0]
-                    prev_length = horse_line[14].text[1:]
-                    prev_time = "0"+horse_line[17].text
-                    prev_time_diff = horse_line[18].text
-                    prev_last3f = float(horse_line[22].text)
-                    if(int(horse_line[11].text) <= 3):
-                        place_number += 1
-                    race_detail = horse_line[4].find("a")
-                    res = requests.get(netkeiba+race_detail.get("href"))
-                    res.encoding = res.apparent_encoding
-                    soup = BeautifulSoup(res.text,"html.parser")
-                    table = soup.find("table",class_="race_table_01 nk_tb_common")
-                    elements = table.findAll("tr")
-                    prev_prize = elements[1].findAll("td")[20].text
-                elif(flag == 1):
-                    preprev_result = horse_line[11].text
-                    preprev_head_count = horse_line[6].text
-                    preprev_horse_number = horse_line[8].text
-                    if(horse_line[14].text[0] == "ダ"):
-                            preprev_race_type = "ダート"
-                    else:
-                        preprev_race_type = horse_line[14].text[0]
-                    preprev_length = horse_line[14].text[1:]
-                    preprev_time = "0"+horse_line[17].text
-                    preprev_time_diff = horse_line[18].text
-                    preprev_last3f = float(horse_line[22].text)
-                    if(int(horse_line[11].text) <= 3):
-                        place_number += 1
-                    race_detail = horse_line[4].find("a")
-                    res = requests.get(netkeiba+race_detail.get("href"))
-                    res.encoding = res.apparent_encoding
-                    soup = BeautifulSoup(res.text,"html.parser")
-                    table = soup.find("table",class_="race_table_01 nk_tb_common")
-                    elements = table.findAll("tr")
-                    preprev_prize = elements[1].findAll("td")[20].text
-                else:
-                    if(int(horse_line[11].text) <= 3):
-                        place_number += 1
-                flag += 1
+                        if(int(horse_line[11].text) <= 3):
+                            place_number += 1
+                    flag += 1
             except:
                 print("horse_error")
         race_count = flag

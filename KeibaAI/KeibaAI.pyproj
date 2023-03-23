@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>KeibaAI</Name>
     <RootNamespace>KeibaAI</RootNamespace>
-    <InterpreterId>CondaEnv|CondaEnv|NNKeiba</InterpreterId>
+    <InterpreterId>Global|PythonCore|3.7</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,6 +27,7 @@
     <Compile Include="LightGBM_clustering1.py" />
     <Compile Include="run_clustering_future.py" />
     <Compile Include="url2html.py" />
+    <Compile Include="モジュール1.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Dataset\" />
@@ -36,6 +37,8 @@
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="CondaEnv|CondaEnv|NNKeiba" />
+    <InterpreterReference Include="Global|PythonCore|3.7" />
+    <InterpreterReference Include="Global|PythonCore|3.8-32" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
