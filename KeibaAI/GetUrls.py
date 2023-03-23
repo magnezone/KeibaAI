@@ -2,7 +2,7 @@ import time
 import os
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select,WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC, select
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 
 #データを保存する場所
@@ -20,7 +20,7 @@ options = Options()
 #options.add_argument('--headless')    # ヘッドレスモードに
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 driver = webdriver.Chrome(driver_path,chrome_options=options) 
-wait = WebDriverWait(driver,100)
+wait = WebDriverWait(driver,1000)
 driver.get(URL)
 time.sleep(1)
 wait.until(EC.presence_of_all_elements_located)
