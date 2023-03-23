@@ -2,6 +2,7 @@ import ftplib
 import csv
 
 
+
 ipAddress = "sv7.wp.xdomain.ne.jp"
 userName = "tomsky.wp.xdomain.jp"
 password = "Magnez0ne765pro"
@@ -18,7 +19,7 @@ print(file_list)
 #    ftp.retrbinary("RETR wp-content/themes/twentytwentyone/functions.php",f.write)
 
 #アップロード
-with open("race.csv","rb") as f:
-    ftp.storbinary("STOR toms-dir/race.csv",f)
-
-ftp.quit()
+def sendCSV():
+    with open("race.csv","rb") as f:
+        ftp.storbinary("STOR toms-dir/race.csv",f)
+    ftp.quit()

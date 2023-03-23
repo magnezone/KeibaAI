@@ -20,13 +20,13 @@ def convert_date(date:str):
 
 netkeiba = r"https://db.netkeiba.com"
 
-model1 = lgb.Booster(model_file = r"Dataset/model_clusterring.txt")
-model2 = lgb.Booster(model_file = r"Dataset/model_regression2.txt")
+model1 = lgb.Booster(model_file = r"C:\Users\tom-s\source\repos\magnezone\KeibaAI\KeibaAI\Dataset\model_clusterring.txt")
+model2 = lgb.Booster(model_file = r"C:\Users\tom-s\source\repos\magnezone\KeibaAI\KeibaAI\Dataset\model_regression2.txt")
 
 loop_is = True
 
 jockeys = {}
-with open(r"Dataset/Jockey.csv") as f:
+with open(r"C:\Users\tom-s\source\repos\magnezone\KeibaAI\KeibaAI\Dataset\Jockey.csv") as f:
     reader = csv.reader(f)
     reader.__next__()
     for row in reader:
@@ -321,6 +321,8 @@ def get_result(path):
 
     print(sorted(y_all.items(),key=lambda x:x[1]))
 
-while(loop_is):
-    url = input("urlを入力してください．")
-    get_result(url)
+
+if __name__ == "__main__":
+    while(loop_is):
+        url = input("urlを入力してください．")
+        get_result(url)
