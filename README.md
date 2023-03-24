@@ -4,7 +4,7 @@
 3着以内に入る馬を予想します．
 
 ## Requirements
-python 3.8
+python 3.8.8
 
 ライブラリはrequirements.txtを参照
 
