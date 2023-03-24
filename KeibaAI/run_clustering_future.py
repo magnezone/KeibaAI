@@ -81,112 +81,113 @@ legquality = 0
 #"前々走種類","前々走距離","前々走タイム","前々走タイム差","前々走後3Fタイム",
 #"前々走着順","レース回数","連対率"
 
-data = []
-
-res = requests.get(path)
-res.encoding = res.apparent_encoding
-soup = BeautifulSoup(res.text,"html.parser")
-date = soup.find("dd",class_="Active").find("a").text
-race_num = path[-12:]
-race_type = soup.find("div",class_="RaceData01").findAll("span")[0].text[1]
-if(race_type == "ダ"):
-    race_type = "ダート"
-length = soup.find("div",class_="RaceData01").findAll("span")[0].text[1:]
-length = re.search(r"\d{4}m",length).group()[:-1]
-head_count = soup.find("div",class_="RaceData02").findAll("span")[7].text
-head_count = int(re.search(r"\d+頭",head_count).group()[:-1])
-elements = soup.find("div",class_="RaceTableArea").findAll("tr",class_="HorseList")
-for element in elements:
-    try: 
-        line = element.findAll("td")
-        horse_number = line[1].text
-        sex = line[4].text[0]
-        age = line[4].text[1:]
-        burden = line[5].text
-        jockey = line[6].text[1:-1]
-        if(jockey == "Ｍデムーロ" ):
-            jockey = "Ｍ．デム"
-        for i in jockeys:
-            if(re.match(jockey,i) != None):
-                if(jockey == re.match(jockey,i).group()):
-                    jockey = i
-                    break
-        print(jockey)
-        win_odds = line[9].text
-        horse_weight = line[8].text[1:-1]
-        horse_detail = line[3].find("a")
-        res = requests.get(horse_detail.get("href"))
-        res.encoding = res.apparent_encoding
-        soup = BeautifulSoup(res.text,"html.parser")
-        table = soup.find("table",class_="db_h_race_results nk_tb_common")
-        horse_elements = table.findAll("tr")
-        place_number = 0
-        flag = 0
-        legquality = soup.find("table",class_="tekisei_table").findAll("tr")[2].findAll("img")[1].get("width")
-        for horse_element in horse_elements[1:]:
-            try:
-                horse_line = horse_element.findAll("td")
-                if(flag == 0):
-                    prev_result = horse_line[11].text
-                    prev_head_count = horse_line[6].text
-                    prev_horse_number = horse_line[8].text
-                    if(horse_line[14].text[0] == "ダ"):
-                            prev_race_type = "ダート"
-                    else:
-                        prev_race_type = horse_line[14].text[0]
-                    prev_length = horse_line[14].text[1:]
-                    prev_time = "0"+horse_line[17].text
-                    prev_time_diff = horse_line[18].text
-                    prev_last3f = float(horse_line[22].text)
-                    if(int(horse_line[11].text) <= 3):
-                        place_number += 1
-                    race_detail = horse_line[4].find("a")
-                    res = requests.get(netkeiba+race_detail.get("href"))
-                    res.encoding = res.apparent_encoding
-                    soup = BeautifulSoup(res.text,"html.parser")
-                    table = soup.find("table",class_="race_table_01 nk_tb_common")
-                    elements = table.findAll("tr")
-                    prev_prize = elements[1].findAll("td")[20].text
-                elif(flag == 1):
-                    preprev_result = horse_line[11].text
-                    preprev_head_count = horse_line[6].text
-                    preprev_horse_number = horse_line[8].text
-                    if(horse_line[14].text[0] == "ダ"):
-                            preprev_race_type = "ダート"
-                    else:
-                        preprev_race_type = horse_line[14].text[0]
-                    preprev_length = horse_line[14].text[1:]
-                    preprev_time = "0"+horse_line[17].text
-                    preprev_time_diff = horse_line[18].text
-                    preprev_last3f = float(horse_line[22].text)
-                    if(int(horse_line[11].text) <= 3):
-                        place_number += 1
-                    race_detail = horse_line[4].find("a")
-                    res = requests.get(netkeiba+race_detail.get("href"))
-                    res.encoding = res.apparent_encoding
-                    soup = BeautifulSoup(res.text,"html.parser")
-                    table = soup.find("table",class_="race_table_01 nk_tb_common")
-                    elements = table.findAll("tr")
-                    preprev_prize = elements[1].findAll("td")[20].text
-                else:
-                    if(int(horse_line[11].text) <= 3):
-                        place_number += 1
-                flag += 1
-            except:
-                print("horse_error")
-        race_count = flag
-        if(race_count < 2):
-            continue
-        win2_ratio = place_number/race_count
-        column = [date,race_num,race_type,length,age,sex,burden,jockey,horse_number,head_count,horse_weight,
-            win_odds,result,prev_head_count,prev_horse_number,prev_prize,prev_race_type,
-            prev_length,prev_time,prev_time_diff,prev_last3f,prev_result,preprev_head_count,preprev_horse_number,preprev_prize,preprev_race_type,
-            preprev_length,preprev_time,preprev_time_diff,preprev_last3f,preprev_result,race_count,win2_ratio,legquality]
-        data.append(column)
-        print(column)
-    except Exception as e:
-        print("race_error")
-        print(e)
+def get_result(path):
+    data = []
+    res = requests.get(path)
+    res.encoding = res.apparent_encoding
+    soup = BeautifulSoup(res.text,"html.parser")
+    date = soup.find("dd",class_="Active").find("a").text
+    race_num = path[-12:]
+    race_type = soup.find("div",class_="RaceData01").findAll("span")[0].text[1]
+    if(race_type == "ダ"):
+        race_type = "ダート"
+    length = soup.find("div",class_="RaceData01").findAll("span")[0].text[1:]
+    length = re.search(r"\d{4}m",length).group()[:-1]
+    head_count = soup.find("div",class_="RaceData02").findAll("span")[7].text
+    head_count = int(re.search(r"\d+頭",head_count).group()[:-1])
+    elements = soup.find("div",class_="RaceTableArea").findAll("tr",class_="HorseList")
+    for element in elements:
+        try: 
+            line = element.findAll("td")
+            horse_number = line[1].text
+            sex = line[4].text[0]
+            age = line[4].text[1:]
+            burden = line[5].text
+            jockey = line[6].text[1:-1]
+            if(jockey == "Ｍデムーロ" ):
+                jockey = "Ｍ．デム"
+            for i in jockeys:
+                if(re.match(jockey,i) != None):
+                    if(jockey == re.match(jockey,i).group()):
+                        jockey = i
+                        break
+            print(jockey)
+            win_odds = line[9].text
+            horse_weight = line[8].text[1:-1]
+            horse_detail = line[3].find("a")
+            res = requests.get(horse_detail.get("href"))
+            res.encoding = res.apparent_encoding
+            soup = BeautifulSoup(res.text,"html.parser")
+            table = soup.find("table",class_="db_h_race_results nk_tb_common")
+            horse_elements = table.findAll("tr")
+            place_number = 0
+            flag = 0
+            legquality = soup.find("table",class_="tekisei_table").findAll("tr")[2].findAll("img")[1].get("width")
+            for horse_element in horse_elements[1:]:
+                try:
+                    horse_line = horse_element.findAll("td")
+                    if(int(horse_line[0].text.replace("/","")) < int(race_num[:4]+convert_date(date))):
+                        if(flag == 0):
+                            prev_result = horse_line[11].text
+                            prev_head_count = horse_line[6].text
+                            prev_horse_number = horse_line[8].text
+                            if(horse_line[14].text[0] == "ダ"):
+                                    prev_race_type = "ダート"
+                            else:
+                                prev_race_type = horse_line[14].text[0]
+                            prev_length = horse_line[14].text[1:]
+                            prev_time = "0"+horse_line[17].text
+                            prev_time_diff = horse_line[18].text
+                            prev_last3f = float(horse_line[22].text)
+                            if(int(horse_line[11].text) <= 3):
+                                place_number += 1
+                            race_detail = horse_line[4].find("a")
+                            res = requests.get(netkeiba+race_detail.get("href"))
+                            res.encoding = res.apparent_encoding
+                            soup = BeautifulSoup(res.text,"html.parser")
+                            table = soup.find("table",class_="race_table_01 nk_tb_common")
+                            elements = table.findAll("tr")
+                            prev_prize = elements[1].findAll("td")[20].text
+                        elif(flag == 1):
+                            preprev_result = horse_line[11].text
+                            preprev_head_count = horse_line[6].text
+                            preprev_horse_number = horse_line[8].text
+                            if(horse_line[14].text[0] == "ダ"):
+                                    preprev_race_type = "ダート"
+                            else:
+                                preprev_race_type = horse_line[14].text[0]
+                            preprev_length = horse_line[14].text[1:]
+                            preprev_time = "0"+horse_line[17].text
+                            preprev_time_diff = horse_line[18].text
+                            preprev_last3f = float(horse_line[22].text)
+                            if(int(horse_line[11].text) <= 3):
+                                place_number += 1
+                            race_detail = horse_line[4].find("a")
+                            res = requests.get(netkeiba+race_detail.get("href"))
+                            res.encoding = res.apparent_encoding
+                            soup = BeautifulSoup(res.text,"html.parser")
+                            table = soup.find("table",class_="race_table_01 nk_tb_common")
+                            elements = table.findAll("tr")
+                            preprev_prize = elements[1].findAll("td")[20].text
+                        else:
+                            if(int(horse_line[11].text) <= 3):
+                                place_number += 1
+                        flag += 1
+                except:
+                    print("horse_error")
+            race_count = flag
+            if(race_count < 2):
+                continue
+            win2_ratio = place_number/race_count
+            column = [date,race_num,race_type,length,age,sex,burden,jockey,horse_number,head_count,horse_weight,
+                win_odds,result,prev_head_count,prev_horse_number,prev_prize,prev_race_type,
+                prev_length,prev_time,prev_time_diff,prev_last3f,prev_result,preprev_head_count,preprev_horse_number,preprev_prize,preprev_race_type,
+                preprev_length,preprev_time,preprev_time_diff,preprev_last3f,preprev_result,race_count,win2_ratio,legquality]
+            data.append(column)
+            print(column)
+        except Exception as e:
+            print("race_error")
+            print(e)
 
     x_data = []
     y_data = []
