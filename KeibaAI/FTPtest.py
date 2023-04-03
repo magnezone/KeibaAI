@@ -1,18 +1,8 @@
 import ftplib
-import csv
-
-
 
 ipAddress = "sv7.wp.xdomain.ne.jp"
 userName = "tomsky.wp.xdomain.jp"
 password = "Magnez0ne765pro"
-
-ftp = ftplib.FTP(ipAddress)
-ftp.set_pasv('true')
-ftp.login(userName,password)
-
-file_list = ftp.dir("wp-content/themes/twentytwentyone/")
-print(file_list)
 
 #ダウンロード
 #with open("temp.php","wb") as f:
@@ -20,6 +10,20 @@ print(file_list)
 
 #アップロード
 def sendCSV():
+    ftp = ftplib.FTP(ipAddress)
+    ftp.set_pasv('true')
+    ftp.login(userName,password)
     with open("race.csv","rb") as f:
         ftp.storbinary("STOR toms-dir/race.csv",f)
     ftp.quit()
+
+def downloadCSV():
+    ftp = ftplib.FTP(ipAddress)
+    ftp.set_pasv('true')
+    ftp.login(userName,password)
+    with open("race.csv","wb") as f:
+        ftp.retrbinary("RETR toms-dir/race.csv",f.write)
+    ftp.quit()
+
+if __name__ == "__main__":
+    downloadCSV()

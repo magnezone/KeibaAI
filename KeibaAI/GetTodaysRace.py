@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import datetime
 from selenium import webdriver
-from selenium.webdriver.support.ui import Select,WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -72,13 +72,14 @@ def getTodayRaceDetails():
                 for k in range(13):
                     setting_time = getSettingTime(raceTimes[k-1].text[:-1])
                     print(setting_time)
-                    url = "https://race.netkeiba.com/"+raceUrls[k-1]["href"].replace("result","shutuba")[3:]
+                    url = "https://race.netkeiba.com/"+raceUrls[k-1]["href"].replace("result","shutuba")[3:-13]
+                    print(url,k,j)
                     if(k == 0):
                         raceData[k][j] = raceList[j].find("p",class_="RaceList_DataTitle").text.split(" ")[1]
                     elif(todayDateString()[-2:-1] == "土"):
-                        schedule.every().saturday.at(setting_time).do(get_result,url)
+                        schedule.every().saturday.at(setting_time).do(get_result,path = url,row_num = k,column_num = j)
                     elif(todayDateString()[-2:-1] == "日"):
-                        schedule.every().sunday.at(setting_time).do(get_result,url)
+                        schedule.every().sunday.at(setting_time).do(get_result,path = url,row_num = k,column_num = j)
             break
     with open("race.csv","w",newline="",encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -88,6 +89,7 @@ def getTodayRaceDetails():
 if __name__ == "__main__":
     getTodayRaceDetails()    
     while(True):
+        print(schedule.idle_seconds())
         if(schedule.idle_seconds() == None):
             break
         elif(int(schedule.idle_seconds()) > 86400):

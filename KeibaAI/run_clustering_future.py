@@ -8,6 +8,9 @@ import re
 import lightgbm as lgb
 import pandas as pd
 import numpy as np
+import os
+from FTPtest import sendCSV,downloadCSV
+import schedule
 
 def convert_date(date:str):
     res = ""
@@ -18,15 +21,17 @@ def convert_date(date:str):
         res += results[i]
     return res
 
+abs_dir = os.path.dirname(os.path.abspath(__file__))
+
 netkeiba = r"https://db.netkeiba.com"
 
-model1 = lgb.Booster(model_file = r"C:\Users\tom-s\source\repos\magnezone\KeibaAI\KeibaAI\Dataset\model_clusterring.txt")
-model2 = lgb.Booster(model_file = r"C:\Users\tom-s\source\repos\magnezone\KeibaAI\KeibaAI\Dataset\model_regression2.txt")
+model1 = lgb.Booster(model_file = abs_dir + r"\Dataset\model_clusterring.txt")
+model2 = lgb.Booster(model_file = abs_dir + r"\Dataset\model_regression2.txt")
 
 loop_is = True
 
 jockeys = {}
-with open(r"C:\Users\tom-s\source\repos\magnezone\KeibaAI\KeibaAI\Dataset\Jockey.csv") as f:
+with open(abs_dir +  r"\Dataset\Jockey.csv") as f:
     reader = csv.reader(f)
     reader.__next__()
     for row in reader:
@@ -81,7 +86,8 @@ legquality = 0
 #"前々走種類","前々走距離","前々走タイム","前々走タイム差","前々走後3Fタイム",
 #"前々走着順","レース回数","連対率"
 
-def get_result(path):
+def get_predict(path):
+    print(path)
     data = []
     res = requests.get(path)
     res.encoding = res.apparent_encoding
@@ -296,33 +302,56 @@ def get_result(path):
             y_data.append(int(row[12]))
         except:
             print("error")
-
-    df = pd.DataFrame(x_data,columns=columns)
-    y_pred = model1.predict(df,num_iteration=model1.best_iteration)
-    srt = np.argsort(-y_pred[:,0])
-    res = [int(x_data[i][6]) for i in srt]
-    probability = [round(y_pred[i,0]*100/np.sum(y_pred[:,0]),2) for i in srt]
+    try:
+        df = pd.DataFrame(x_data,columns=columns)
+        y_pred = model1.predict(df,num_iteration=model1.best_iteration)
+        srt = np.argsort(-y_pred[:,0])
+        res = [int(x_data[i][6]) for i in srt]
+        probability = [round(y_pred[i,0]*100/np.sum(y_pred[:,0]),2) for i in srt]
+    except:
+        return ["",""]
     print(res)
     print(probability)
     print(y_pred[:,0])
+    """
+        y_all = dict()
+        for i,j in enumerate(res):
+            y_all[j] = i
 
-    y_all = dict()
-    for i,j in enumerate(res):
-        y_all[j] = i
+        y_pred = model2.predict(df,num_iteration=model2.best_iteration)
+        srt = np.argsort(y_pred)
+        res = [int(x_data[i][6]) for i in srt]
+        print(res)
+        print(y_pred)
 
-    y_pred = model2.predict(df,num_iteration=model2.best_iteration)
-    srt = np.argsort(y_pred)
-    res = [int(x_data[i][6]) for i in srt]
-    print(res)
-    print(y_pred)
+        for i,j in enumerate(res):
+            y_all[j] += i
 
-    for i,j in enumerate(res):
-        y_all[j] += i
+        print(sorted(y_all.items(),key=lambda x:x[1]))
+    """
+    return [res,probability]
 
-    print(sorted(y_all.items(),key=lambda x:x[1]))
+def get_result(path,row_num,column_num):
+    res,probability = get_predict(path)
+    downloadCSV()
+
+    with open("race.csv","r",encoding="utf8") as f:
+        reader = csv.reader(f)
+        race_data = [i for i in reader]
+
+    print(race_data)
+    race_data[row_num][column_num] = "-".join(map(str,res)) + " " + "-".join(map(str,probability))
+
+    with open("race.csv","w",newline="",encoding="utf8") as f:
+        writer = csv.writer(f)
+        writer.writerows(race_data)
+
+    sendCSV()
+
+    return schedule.CancelJob
 
 
 if __name__ == "__main__":
     while(loop_is):
         url = input("urlを入力してください．")
-        get_result(url)
+        get_predict(url)
