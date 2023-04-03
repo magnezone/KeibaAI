@@ -31,7 +31,7 @@ model2 = lgb.Booster(model_file = abs_dir + r"\Dataset\model_regression2.txt")
 loop_is = True
 
 jockeys = {}
-with open(abs_dir +  r"\Dataset\Jockey.csv") as f:
+with open(abs_dir +  r"\Dataset\Jockey.csv",encoding="Shift-JIS") as f:
     reader = csv.reader(f)
     reader.__next__()
     for row in reader:
@@ -354,4 +354,7 @@ def get_result(path,row_num,column_num):
 if __name__ == "__main__":
     while(loop_is):
         url = input("urlを入力してください．")
-        get_predict(url)
+        try:
+            get_predict(url)
+        except:
+            print("不正なURLです。")
