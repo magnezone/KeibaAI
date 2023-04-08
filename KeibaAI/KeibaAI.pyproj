@@ -11,6 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>KeibaAI</Name>
     <RootNamespace>KeibaAI</RootNamespace>
+    <InterpreterId>Global|PythonCore|3.8-32</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
