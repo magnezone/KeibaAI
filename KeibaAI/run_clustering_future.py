@@ -89,7 +89,12 @@ legquality = 0
 def get_predict(path):
     print(path)
     data = []
-    res = requests.get(path)
+    while(True):
+        try:
+            res = requests.get(path)
+            break
+        except:
+            "Request Error"
     res.encoding = res.apparent_encoding
     soup = BeautifulSoup(res.text,"html.parser")
     date = soup.find("dd",class_="Active").find("a").text
