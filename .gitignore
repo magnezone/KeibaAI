@@ -365,3 +365,5 @@ FodyWeavers.xsd
 .vs/
 myenv
 KeibaAI/chromedriver_win32/
+
+info.json

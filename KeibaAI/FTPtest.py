@@ -1,8 +1,13 @@
 import ftplib
+import json
+import os
 
-ipAddress = "sv7.wp.xdomain.ne.jp"
-userName = "tomsky.wp.xdomain.jp"
-password = "Magnez0ne765pro"
+abs_dir = os.path.dirname(os.path.abspath(__file__))
+with open(abs_dir + r"\..\info.json") as f:
+    info = json.load(f)
+ipAddress = info["ipaddress"]
+userName = info["username"]
+password = info["password"]
 
 #ダウンロード
 #with open("temp.php","wb") as f:
