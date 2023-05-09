@@ -362,6 +362,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-.vs/
+.vs
 myenv
 KeibaAI/chromedriver_win32/
