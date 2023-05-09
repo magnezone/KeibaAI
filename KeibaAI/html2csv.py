@@ -9,10 +9,17 @@ netkeiba = r"https://db.netkeiba.com"
 root = r"../../Dataset/new/"
 
 #日付,レース番号.レース種類,レース距離,年齢,性別,斤量,騎手,馬番,馬体重,単勝オッズ,着順,タイム
+#日付，レース番号，レース種類，方向，レース距離，天候，馬場，レース指定，着順，枠番，馬番，年齢，性別，斤量，騎手,タイム，後3Fタイム，単勝オッズ
 date = 0
 race_number = 0
 race_type = 0
-length = 0
+direction = 0
+race_length = 0
+weather = 0
+race_track=0
+race_specify = 0
+result = 0
+post_position=0
 age = 0
 sex = 0
 burden = 0
@@ -20,10 +27,13 @@ jockey = 0
 horse_number = 0
 head_count = 0
 horse_weight = 0
-win_odds = 0
-result = 0
 time = 0
-#前走：馬番,着順,優勝賞金,距離,タイム,タイム差,後3Fタイム,着順
+last3f = 0
+win_odds = 0
+#前走
+#レース種類,レース距離頭数,馬番,着順,騎手,優勝賞金,距離,タイム,タイム差,後3Fタイム,着順
+#上がり，馬体重
+prev_race_type = 0
 prev_head_count = 0
 prev_horse_number = 0
 prev_prize = 0
@@ -33,7 +43,8 @@ prev_time = 0
 prev_time_diff = 0
 prev_last3f = 0
 prev_result = 0
-#前々走：馬番,着順,優勝賞金,距離,タイム,タイム差,後3Fタイム,着順
+#前々走
+#馬番,着順,優勝賞金,距離,タイム,タイム差,後3Fタイム,着順
 preprev_head_count = 0
 preprev_horse_number = 0
 preprev_prize = 0
@@ -52,7 +63,7 @@ data = ["日付","レース番号","種類","距離","年齢","性別","斤量",
     "前走頭数","前走馬番","前走優勝賞金","前走種類","前走距離","前走タイム","前走タイム差","前走後3Fタイム","前走着順",
     "前々走頭数","前々走馬番","前々走優勝賞金","前々走種類","前々走距離","前々走タイム","前々走タイム差","前々走後3Fタイム","前々走着順","総レース数","連対率","脚質"]
 
-with open(r"../../Dataset/Data1600-500.csv","w",newline = "")as f1:
+with open(r"../../Dataset/Data/1600-500.csv","w",newline = "")as f1:
     writer = csv.writer(f1)
     writer.writerow(data)
     for year in range(2010,2022):
@@ -153,10 +164,10 @@ with open(r"../../Dataset/Data1600-500.csv","w",newline = "")as f1:
                         race_count = flag
                         win2_ratio = place_number/race_count
                         column = [date,race_number,race_type,length,age,sex,burden,jockey,horse_number,head_count,
-                              horse_weight,win_odds,result,time,prev_head_count,prev_horse_number,prev_prize,
-                              prev_race_type,prev_length,prev_time,prev_time_diff,prev_last3f,prev_result,
-                              preprev_head_count,preprev_horse_number,preprev_prize,preprev_race_type,preprev_length,
-                              preprev_time,preprev_time_diff,preprev_last3f,preprev_result,race_count,win2_ratio,LegQuality]
+                                horse_weight,win_odds,result,time,prev_head_count,prev_horse_number,prev_prize,
+                                prev_race_type,prev_length,prev_time,prev_time_diff,prev_last3f,prev_result,
+                                preprev_head_count,preprev_horse_number,preprev_prize,preprev_race_type,preprev_length,
+                                preprev_time,preprev_time_diff,preprev_last3f,preprev_result,race_count,win2_ratio,LegQuality]
                         print(column)
                         writer.writerow(column)
                     except:

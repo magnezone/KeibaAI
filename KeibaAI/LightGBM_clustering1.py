@@ -15,7 +15,7 @@ import pandas as pd
 from sklearn.metrics import accuracy_score
 import optuna.integration.lightgbm as lgb
 
-path = r"../../Dataset/Data1600-500.csv"
+path = __file__+"\\..\\Dataset\\Data1600-500.csv"
 
 # データフレームを綺麗に出力する関数
 import IPython
@@ -44,7 +44,7 @@ columns = ["race_type","length","age","sex","burden","jockey","horse_number","he
             "preprev_last3f","preprev_result","race_count","win2_ratio","legquality","weight"]
 
 jockeys = {}
-with open(r"../../Dataset/Jockey.csv") as f:
+with open(path) as f:
     reader = csv.reader(f)
     reader.__next__()
     for row in reader:
@@ -96,7 +96,7 @@ with open(path,newline='') as f:
         try:
             line.append(float(row[10][4:-1]))
         except:
-           line.append(float(row[10][5:-1]))
+            line.append(float(row[10][5:-1]))
         #単勝オッズ
         #line.append(float(row[11]))
         #前走頭数
