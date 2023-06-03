@@ -13,15 +13,16 @@ root = os.path.dirname(os.path.abspath(__file__))
 
 columns_name = ["日付","レース番号","レース種類","方向","レース距離","天候","馬場",
                "着順","枠番","馬番","年齢","性別","斤量","騎手","タイム","着差","通過","上り",
-               "単勝オッズ","人気","馬体重","優勝賞金"]
+               "単勝オッズ","人気","馬体重","優勝賞金","頭数"]
 row_data = [pd.DataFrame(columns=columns_name,index=[-1]) for i in range(3)]
 row_data.append(pd.DataFrame(columns=["総レース数","連対率","脚質"],index=[-1]))
 
 output = None
 
-for year in range(2010,2022):
-    for month in range(1,13):
+for year in range(2010,2011):
+    for month in range(1,2):
         files = glob.glob(root+"\\Dataset\\重賞201001-202112\\"+str(year)+"\\"+str(month)+"\\*.html")
+        print(year,month)
         for file_ in files:
             with open(file_,encoding="euc-jp") as f:
                 html = f.read()
@@ -41,6 +42,7 @@ for year in range(2010,2022):
             b = re.search(r"/\xa0(芝|ダート) : .{1,2}\xa0/",a.text).group()
             row_data[0]["馬場"] = re.search(r" .{1,2}\xa0",b).group()[1:-1]
             win_prize = elements[1].findAll("td")[20].text
+            horse_num = len(elements)-1
             for element in elements[1:]:
                 try: 
                     line = element.findAll("td")
@@ -61,6 +63,7 @@ for year in range(2010,2022):
                     row_data[0]["人気"] =line[13].text
                     row_data[0]["馬体重"] = line[14].text
                     row_data[0]["優勝賞金"] = win_prize
+                    row_data[0]["頭数"] = horse_num
                     horse_detail = line[3].find("a")
                     res = requests.get(netkeiba+horse_detail.get("href"))
                     res.encoding = res.apparent_encoding
@@ -76,6 +79,7 @@ for year in range(2010,2022):
                             if(flag > -1):
                                 if(flag == 0 or flag == 1):
                                     index = flag+1
+                                    horse_num = int(horse_line[6].text)
                                     race_detail = horse_line[4].find("a")
                                     res = requests.get(netkeiba+race_detail.get("href"))
                                     res.encoding = res.apparent_encoding
@@ -111,6 +115,7 @@ for year in range(2010,2022):
                                     row_data[index]["人気"] =line[13].text
                                     row_data[index]["馬体重"] = line[14].text
                                     row_data[index]["優勝賞金"] =elements[1].findAll("td")[20].text
+                                    row_data[index]["頭数"] = horse_num
                                 else:
                                     try:
                                         if(int(horse_line[11].text) <= 3):
