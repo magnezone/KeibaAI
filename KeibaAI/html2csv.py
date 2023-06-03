@@ -4,171 +4,144 @@ import glob
 import requests
 import csv
 import os
+import pandas as pd
+import re
+import sys
 
-netkeiba = r"https://db.netkeiba.com"
-root = r"../../Dataset/new/"
+netkeiba = "https://db.netkeiba.com"
+root = os.path.dirname(os.path.abspath(__file__))
 
-#日付,レース番号.レース種類,レース距離,年齢,性別,斤量,騎手,馬番,馬体重,単勝オッズ,着順,タイム
-#日付，レース番号，レース種類，方向，レース距離，天候，馬場，レース指定，着順，枠番，馬番，年齢，性別，斤量，騎手,タイム，後3Fタイム，単勝オッズ
-date = 0
-race_number = 0
-race_type = 0
-direction = 0
-race_length = 0
-weather = 0
-race_track=0
-race_specify = 0
-result = 0
-post_position=0
-age = 0
-sex = 0
-burden = 0
-jockey = 0
-horse_number = 0
-head_count = 0
-horse_weight = 0
-time = 0
-last3f = 0
-win_odds = 0
-#前走
-#レース種類,レース距離頭数,馬番,着順,騎手,優勝賞金,距離,タイム,タイム差,後3Fタイム,着順
-#上がり，馬体重
-prev_race_type = 0
-prev_head_count = 0
-prev_horse_number = 0
-prev_prize = 0
-prev_race_type = 0
-prev_length = 0
-prev_time = 0
-prev_time_diff = 0
-prev_last3f = 0
-prev_result = 0
-#前々走
-#馬番,着順,優勝賞金,距離,タイム,タイム差,後3Fタイム,着順
-preprev_head_count = 0
-preprev_horse_number = 0
-preprev_prize = 0
-preprev_race_type = 0
-preprev_length = 0
-preprev_time = 0
-preprev_time_diff = 0
-preprev_last3f = 0
-preprev_result = 0
-#連対率,着順,脚質
-race_count = 0
-win2_ratio = 0
-LegQuality = 0
+columns_name = ["日付","レース番号","レース種類","方向","レース距離","天候","馬場",
+               "着順","枠番","馬番","年齢","性別","斤量","騎手","タイム","着差","通過","上り",
+               "単勝オッズ","人気","馬体重","優勝賞金"]
+row_data = [pd.DataFrame(columns=columns_name,index=[-1]) for i in range(3)]
+row_data.append(pd.DataFrame(columns=["総レース数","連対率","脚質"],index=[-1]))
 
-data = ["日付","レース番号","種類","距離","年齢","性別","斤量","騎手","馬番","頭数","馬体重","単勝オッズ","着順","タイム",
-    "前走頭数","前走馬番","前走優勝賞金","前走種類","前走距離","前走タイム","前走タイム差","前走後3Fタイム","前走着順",
-    "前々走頭数","前々走馬番","前々走優勝賞金","前々走種類","前々走距離","前々走タイム","前々走タイム差","前々走後3Fタイム","前々走着順","総レース数","連対率","脚質"]
+output = None
 
-with open(r"../../Dataset/Data/1600-500.csv","w",newline = "")as f1:
-    writer = csv.writer(f1)
-    writer.writerow(data)
-    for year in range(2010,2022):
-        for month in range(1,13):
-            files = glob.glob(root+str(year)+"/"+str(month)+"/*")
-            for file_ in files:
-                print(file_)
-                with open(file_,encoding="euc-jp") as f:
-                    html = f.read()
-                soup = BeautifulSoup(html,"html.parser")
-                date = soup.find("li",class_="result_link").find("a").text[0:10]
-                date = date.translate(str.maketrans({"年":"/","月":"/"}))
-                table = soup.find("table",class_="race_table_01 nk_tb_common")
-                elements = table.findAll("tr")
-                race_number = os.path.split(file_)[1][:-5]
-                for element in elements[1:]:
-                    try: 
-                        line = element.findAll("td")
-                        result = int(line[0].text)
-                        horse_number = line[2].text
-                        sex = line[4].text[0]
-                        age = line[4].text[1]
-                        burden = line[5].text
-                        jockey = line[6].text[1:-1]
-                        time = line[7].text
-                        win_odds = line[12].text
-                        horse_weight = line[14].text
-                        horse_detail = line[3].find("a")
-                        res = requests.get(netkeiba+horse_detail.get("href"))
-                        res.encoding = res.apparent_encoding
-                        soup = BeautifulSoup(res.text,"html.parser")
-                        table = soup.find("table",class_="db_h_race_results nk_tb_common")
-                        horse_elements = table.findAll("tr")
-                        place_number = 0
-                        flag = -1
-                        LegQuality = soup.find("table",class_="tekisei_table").findAll("tr")[2].findAll("img")[1].get("width")
-                        for horse_element in horse_elements[1:]:
-                            try:
-                                horse_line = horse_element.findAll("td")
-                                if(flag > -1):
-                                    if(flag == 0):
-                                        prev_result = horse_line[11].text
-                                        prev_head_count = horse_line[6].text
-                                        prev_horse_number = horse_line[8].text
-                                        if(horse_line[14].text[0] == "ダ"):
-                                                prev_race_type = "ダート"
-                                        else:
-                                            prev_race_type = horse_line[14].text[0]
-                                        prev_length = horse_line[14].text[1:]
-                                        prev_time = horse_line[17].text
-                                        prev_time_diff = horse_line[18].text
-                                        prev_last3f = horse_line[22].text
+for year in range(2010,2022):
+    for month in range(1,13):
+        files = glob.glob(root+"\\Dataset\\重賞201001-202112\\"+str(year)+"\\"+str(month)+"\\*.html")
+        for file_ in files:
+            with open(file_,encoding="euc-jp") as f:
+                html = f.read()
+            soup = BeautifulSoup(html,"html.parser")
+            date = soup.find("li",class_="result_link").find("a").text[0:10]
+            date = date.translate(str.maketrans({"年":"/","月":"/"}))
+            row_data[0]["日付"] = date
+            table = soup.find("table",class_="race_table_01 nk_tb_common")
+            elements = table.findAll("tr")
+            row_data[0]["レース番号"] = os.path.split(file_)[1][:-5]
+            a = soup.select_one("#main > div > div > div > diary_snap > div > div > dl > dd > p > diary_snap_cut > span")
+            row_data[0]["レース種類"] = a.text[0]
+            row_data[0]["方向"] = a.text[1]
+            row_data[0]["レース距離"] = re.search(r"\d+m",a.text).group()[:-1]
+            b = re.search(r"/\xa0天候 : .{1,2}\xa0/",a.text).group()
+            row_data[0]["天候"] = re.search(r" .{1,2}\xa0",b).group()[1:-1]
+            b = re.search(r"/\xa0(芝|ダート) : .{1,2}\xa0/",a.text).group()
+            row_data[0]["馬場"] = re.search(r" .{1,2}\xa0",b).group()[1:-1]
+            win_prize = elements[1].findAll("td")[20].text
+            for element in elements[1:]:
+                try: 
+                    line = element.findAll("td")
+                    row_data[0]["着順"] = int(line[0].text)
+                    row_data[0]["枠番"] = int(line[1].text)
+                    row_data[0]["馬番"] = int(line[2].text)
+                    horse_name = line[3].text[1:-1]
+                    print(horse_name)
+                    row_data[0]["年齢"] = int(line[4].text[1])
+                    row_data[0]["性別"] = line[4].text[0]
+                    row_data[0]["斤量"] = float(line[5].text)
+                    row_data[0]["騎手"] = line[6].text[1:-1]
+                    row_data[0]["タイム"] =line[7].text
+                    row_data[0]["着差"] = line[8].text
+                    row_data[0]["通過"] = line[10].text
+                    row_data[0]["上り"] = line[11].text
+                    row_data[0]["単勝オッズ"] = line[12].text
+                    row_data[0]["人気"] =line[13].text
+                    row_data[0]["馬体重"] = line[14].text
+                    row_data[0]["優勝賞金"] = win_prize
+                    horse_detail = line[3].find("a")
+                    res = requests.get(netkeiba+horse_detail.get("href"))
+                    res.encoding = res.apparent_encoding
+                    soup = BeautifulSoup(res.text,"html.parser")
+                    table = soup.find("table",class_="db_h_race_results nk_tb_common")
+                    horse_elements = table.findAll("tr")
+                    place_number = 0
+                    flag = -1
+                    row_data[3]["脚質"] = soup.find("table",class_="tekisei_table").findAll("tr")[2].findAll("img")[1].get("width")
+                    for horse_element in horse_elements[1:]:
+                        try:
+                            horse_line = horse_element.findAll("td")
+                            if(flag > -1):
+                                if(flag == 0 or flag == 1):
+                                    index = flag+1
+                                    race_detail = horse_line[4].find("a")
+                                    res = requests.get(netkeiba+race_detail.get("href"))
+                                    res.encoding = res.apparent_encoding
+                                    soup = BeautifulSoup(res.text,"html.parser")
+                                    date2 = soup.find("li",class_="result_link").find("a").text[0:10]
+                                    date2 = date2.translate(str.maketrans({"年":"/","月":"/"}))
+                                    row_data[index]["日付"] = date2
+                                    table = soup.find("table",class_="race_table_01 nk_tb_common")
+                                    elements = table.findAll("tr")
+                                    row_data[index]["レース番号"] = os.path.split(file_)[1][:-5]
+                                    a = soup.select_one("#main > div > div > div > diary_snap > div > div > dl > dd > p > diary_snap_cut > span")
+                                    row_data[index]["レース種類"] = a.text[0]
+                                    row_data[index]["方向"] = a.text[1]
+                                    row_data[index]["レース距離"] = re.search(r"\d+m",a.text).group()[:-1]
+                                    b = re.search(r"/\xa0天候 : .{1,2}\xa0/",a.text).group()
+                                    row_data[index]["天候"] = re.search(r" .{1,2}\xa0",b).group()[1:-1]
+                                    b = re.search(r"/\xa0(芝|ダート) : .{1,2}\xa0/",a.text).group()
+                                    row_data[index]["馬場"] = re.search(r" .{1,2}\xa0",b).group()[1:-1]
+                                    element = table.find(name="a",text=horse_name).parent.parent
+                                    line = element.findAll("td")
+                                    row_data[index]["着順"] = int(line[0].text)
+                                    row_data[index]["枠番"] = int(line[1].text)
+                                    row_data[index]["馬番"] = int(line[2].text)
+                                    row_data[index]["年齢"] = int(line[4].text[1])
+                                    row_data[index]["性別"] = line[4].text[0]
+                                    row_data[index]["斤量"] = float(line[5].text)
+                                    row_data[index]["騎手"] = line[6].text[1:-1]
+                                    row_data[index]["タイム"] =line[7].text
+                                    row_data[index]["着差"] = line[8].text
+                                    row_data[index]["通過"] = line[10].text
+                                    row_data[index]["上り"] = line[11].text
+                                    row_data[index]["単勝オッズ"] = line[12].text
+                                    row_data[index]["人気"] =line[13].text
+                                    row_data[index]["馬体重"] = line[14].text
+                                    row_data[index]["優勝賞金"] =elements[1].findAll("td")[20].text
+                                else:
+                                    try:
                                         if(int(horse_line[11].text) <= 3):
                                             place_number += 1
-                                        race_detail = horse_line[4].find("a")
-                                        res = requests.get(netkeiba+race_detail.get("href"))
-                                        res.encoding = res.apparent_encoding
-                                        soup = BeautifulSoup(res.text,"html.parser")
-                                        table = soup.find("table",class_="race_table_01 nk_tb_common")
-                                        elements = table.findAll("tr")
-                                        prev_prize = elements[1].findAll("td")[20].text
-                                    elif(flag == 1):
-                                        preprev_result = horse_line[11].text
-                                        preprev_head_count = horse_line[6].text
-                                        preprev_horse_number = horse_line[8].text
-                                        if(horse_line[14].text[0] == "ダ"):
-                                                preprev_race_type = "ダート"
-                                        else:
-                                            preprev_race_type = horse_line[14].text[0]
-                                        preprev_length = horse_line[14].text[1:]
-                                        preprev_time = horse_line[17].text
-                                        preprev_time_diff = horse_line[18].text
-                                        preprev_last3f = horse_line[22].text
-                                        if(int(horse_line[11].text) <= 3):
-                                            place_number += 1
-                                        race_detail = horse_line[4].find("a")
-                                        res = requests.get(netkeiba+race_detail.get("href"))
-                                        res.encoding = res.apparent_encoding
-                                        soup = BeautifulSoup(res.text,"html.parser")
-                                        table = soup.find("table",class_="race_table_01 nk_tb_common")
-                                        elements = table.findAll("tr")
-                                        preprev_prize = elements[1].findAll("td")[20].text
-                                    else:
-                                        if(int(horse_line[11].text) <= 3):
-                                            place_number += 1
-                                    flag += 1
-                                if(horse_line[0].text == date):
-                                    head_count = horse_line[6].text
-                                    if(horse_line[14].text[0] == "ダ"):
-                                        race_type = "ダート"
-                                    else:
-                                        race_type = horse_line[14].text[0]
-                                    length = horse_line[14].text[1:]
-                                    flag += 1
-                            except:
-                                print("horse_error")
-                                pass
-                        race_count = flag
-                        win2_ratio = place_number/race_count
-                        column = [date,race_number,race_type,length,age,sex,burden,jockey,horse_number,head_count,
-                                horse_weight,win_odds,result,time,prev_head_count,prev_horse_number,prev_prize,
-                                prev_race_type,prev_length,prev_time,prev_time_diff,prev_last3f,prev_result,
-                                preprev_head_count,preprev_horse_number,preprev_prize,preprev_race_type,preprev_length,
-                                preprev_time,preprev_time_diff,preprev_last3f,preprev_result,race_count,win2_ratio,LegQuality]
-                        print(column)
-                        writer.writerow(column)
-                    except:
-                        print("race_error")
+                                    except:
+                                        flag -= 1
+                                flag += 1
+                            elif(horse_line[0].text == date):
+                                flag += 1
+                        except Exception as e:
+                            print("horse_error")
+                            print(e)
+                    race_count = flag
+                    if(race_count == 0):
+                        raise ZeroDivisionError
+                    win2_ratio = place_number/race_count
+                    row_data[3]["総レース数"] = race_count
+                    row_data[3]["連対率"] = win2_ratio
+                    r1 = row_data[1].add_prefix("前走")
+                    r2 = row_data[2].add_prefix("前前走")
+                    a = pd.concat([row_data[0],r1,r2,row_data[3]],axis=1)  
+                    if(type(output) == type(None)):
+                        output = a.copy()
+                    else:
+                        output = pd.concat([output,a],axis=0,ignore_index=True)                        
+                except Exception as e:
+                    print("race_error")
+                    print(e)
+output.to_csv(root+"\\Dataset\\重賞データ.csv",header=True,index=False)
+            
+
+                        
+
+
