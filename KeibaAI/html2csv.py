@@ -19,8 +19,8 @@ row_data.append(pd.DataFrame(columns=["総レース数","連対率","脚質"],in
 
 output = None
 
-for year in range(2010,2011):
-    for month in range(1,2):
+for year in range(2010,2021):
+    for month in range(1,13):
         files = glob.glob(root+"\\Dataset\\重賞201001-202112\\"+str(year)+"\\"+str(month)+"\\*.html")
         print(year,month)
         for file_ in files:

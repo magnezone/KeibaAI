@@ -26,18 +26,12 @@ def display(*dfs, head=True):
 columns = pd.read_csv(root + "\\Dataset\\重賞データ.csv")
 
 jockeys = {}
-with open(root + "\\Dataset\\Jockey.csv") as f:
+with open(root + "\\Dataset\\Jockey.csv",encoding="utf8") as f:
     reader = csv.reader(f)
     reader.__next__()
     for row in reader:
         s = row[1].replace(" ","")
         jockeys[s] = int(row[0])
-
-for i in ["","前走","前前走"]:
-    for j in ["日付","レース番号","枠番","馬番","人気","単勝オッズ","通過","着差"]:
-        columns = columns.drop(i+j,axis=1)
-columns = columns.drop("タイム",axis=1)
-columns = columns.drop("脚質",axis=1)
 
 for i in columns.index:
     flag = False
@@ -85,7 +79,7 @@ for i in columns.index:
         columns.at[i,j+"方向"] = a.index(columns.at[i,j+"方向"])
         a = ['晴','曇','雨','小雨','小雪','雪']
         columns.at[i,j+"天候"] = a.index(columns.at[i,j+"天候"])
-        a = ['良','稍重','不良','重']
+        a = ['良','稍重','不良','重',"nan"]
         columns.at[i,j+"馬場"] = a.index(columns.at[i,j+"馬場"])
         a = ["牡","牝","セ"]
         columns.at[i,j+"性別"] = a.index(columns.at[i,j+"性別"])
@@ -99,8 +93,12 @@ for i in columns.index:
         columns.at[i,j+"優勝賞金"] = float(str(columns.at[i,j+"優勝賞金"]).replace(",",""))
     columns.at[i,"前走タイム"] = 60*float(columns.at[i,"前走タイム"][0])+float(columns.at[i,"前走タイム"][2:])
     columns.at[i,"前前走タイム"] = 60*float(columns.at[i,"前前走タイム"][0])+float(columns.at[i,"前前走タイム"][2:])
-    if(columns.at[i,"着順"] != 1):
+    if(columns.at[i,"着順"] < 4):
         columns.at[i,"着順"] = 0
+    elif(columns.at[i,"着順"] <= ((columns.at[i,"頭数"]-3)//2)+3):
+        columns.at[i,"着順"] = 1
+    elif(columns.at[i,"着順"] > ((columns.at[i,"頭数"]-3)//2)+3):
+        columns.at[i,"着順"] = 2
         
 for i  in ["レース種類","方向","天候","馬場","騎手","馬体重","優勝賞金","性別","体重増加量"]:
     for j in ["","前走","前前走"]:
@@ -108,15 +106,23 @@ for i  in ["レース種類","方向","天候","馬場","騎手","馬体重","�
 columns["前走タイム"] = columns["前走タイム"].astype('float')
 columns["前前走タイム"] = columns["前前走タイム"].astype('float')
 
-a = columns[columns["着順"] == 1]
-b = columns[columns["着順"] == 0]
+for i in ["","前走","前前走"]:
+    for j in ["日付","レース番号","人気","単勝オッズ","通過","着差"]:
+        columns = columns.drop(i+j,axis=1)
+columns = columns.drop("タイム",axis=1)
+columns = columns.drop("脚質",axis=1)
+columns = columns.drop("上り",axis=1)
+
+a = columns[columns["着順"] == 0]
+b = columns[columns["着順"] == 1]
 b = b.sample(len(a.index))
-c = pd.concat([a,b],ignore_index=True)
-print(c)
-X = c.drop("着順",axis=1)
-Y = c["着順"].values
+c = columns[columns["着順"] == 2]
+c = c.sample(len(a.index))
+d = pd.concat([a,b,c],ignore_index=True)
 
-
+X = d.drop("着順",axis=1)
+Y = d["着順"].values
+print(X.loc[0,:])
 
 x_train,x_test,y_train,y_test = train_test_split(X,Y,stratify=Y,train_size=0.8,random_state=0)
 train_set = lgb.Dataset(x_train,y_train)
@@ -126,7 +132,7 @@ params = {
     "objective":"multiclass",
     "metric":"multi_logloss",
     'boosting_type': 'gbdt',  # default = 'gbdt'
-    'num_class': 2, 
+    'num_class': 3, 
     'num_leaves': 63,         # default = 31,
     'learning_rate': 0.01,    # default = 0.1
     'feature_fraction': 0.8,  # default = 1.0

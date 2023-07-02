@@ -31,7 +31,7 @@ model2 = lgb.Booster(model_file = abs_dir + r"\Dataset\model_regression2.txt")
 loop_is = True
 
 jockeys = {}
-with open(abs_dir +  r"\Dataset\Jockey.csv",encoding="Shift-JIS") as f:
+with open(abs_dir +  r"\Dataset\Jockey.csv",encoding="utf-8") as f:
     reader = csv.reader(f)
     reader.__next__()
     for row in reader:
