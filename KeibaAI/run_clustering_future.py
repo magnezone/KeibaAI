@@ -11,6 +11,7 @@ import numpy as np
 import os
 from FTPtest import sendCSV,downloadCSV
 import schedule
+import DB
 
 def convert_date(date:str):
     res = ""
@@ -334,32 +335,20 @@ def get_predict(path):
 
         print(sorted(y_all.items(),key=lambda x:x[1]))
     """
-    return [res,probability]
+    return [race_num,date,res+"\n"+probability]
 
-def get_result(path,row_num,column_num):
-    res,probability = get_predict(path)
-    downloadCSV()
-
-    with open("race.csv","r",encoding="utf8") as f:
-        reader = csv.reader(f)
-        race_data = [i for i in reader]
-
-    print(race_data)
-    race_data[row_num][column_num] = "-".join(map(str,res)) + " " + "-".join(map(str,probability))
-
-    with open("race.csv","w",newline="",encoding="utf8") as f:
-        writer = csv.writer(f)
-        writer.writerows(race_data)
-
-    sendCSV()
-
+def get_result(path,row_num,column_num,location):
+    race_id,race_date,race_result = get_predict(path)
+    DB.add_DB(race_id,race_date,location,row_num,race_result)
     return schedule.CancelJob
-
 
 if __name__ == "__main__":
     while(loop_is):
-        url = input("urlを入力してください．")
         try:
+            url = input("urlを入力してください．")
+            if("result" in url):
+                url = url.replace("result","shutuba")
             get_predict(url)
-        except:
-            print("不正なURLです。")
+        except Exception as e:
+            print("不正な入力です")
+            print(e)

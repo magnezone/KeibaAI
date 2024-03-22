@@ -13,19 +13,21 @@ from run_clustering_future import get_result
 import csv
 from FTPtest import sendCSV
 import os
+import chromedriver_binary
 
 JST = datetime.timezone(datetime.timedelta(hours=+9),'JST')
 
-#現在のディレクトリ
-current_dir = os.getcwd()
+#このファイルがあるパスを取得
+abs_dir = os.path.dirname(os.path.abspath(__file__))
 
 #driver_path
-driver_path = "../../chromedriver_win32/chromedriver"
+#driver_path = "../../chromedriver_win32/chromedriver"
 #seleniumの各種設定
 options = Options()
 options.add_argument('--headless')    # ヘッドレスモードに
-service = Service(executable_path = driver_path)
-driver = webdriver.Chrome(service = service,options=options) 
+#service = Service(executable_path = driver_path)
+print(abs_dir+r"/chromedriver")
+driver = webdriver.Chrome(executable_path=abs_dir+r"/chromedriver",options=options) 
 #アクセス間隔：1s
 wait = WebDriverWait(driver,1000)
 
@@ -39,6 +41,7 @@ def todayDateString():
     elif(weekday == 6):
         weekday = "日"
     else:
+        return "3月17日(日)"
         return None
     res = str(month) + "月" + str(day) + "日" + "(" + weekday + ")"
     return res
@@ -77,9 +80,9 @@ def getTodayRaceDetails():
                     if(k == 0):
                         raceData[k][j] = raceList[j].find("p",class_="RaceList_DataTitle").text.split(" ")[1]
                     elif(todayDateString()[-2:-1] == "土"):
-                        schedule.every().saturday.at(setting_time).do(get_result,path = url,row_num = k,column_num = j)
+                        schedule.every().saturday.at(setting_time).do(get_result,path = url,row_num = k,column_num = j,location = raceData[0][j])
                     elif(todayDateString()[-2:-1] == "日"):
-                        schedule.every().sunday.at(setting_time).do(get_result,path = url,row_num = k,column_num = j)
+                        schedule.every().sunday.at(setting_time).do(get_result,path = url,row_num = k,column_num = j,location = raceData[0][j])
             break
     with open("race.csv","w",newline="",encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -87,12 +90,13 @@ def getTodayRaceDetails():
     sendCSV()
     
 if __name__ == "__main__":
-    getTodayRaceDetails()    
+    getTodayRaceDetails()
     while(True):
         print(schedule.idle_seconds())
         if(schedule.idle_seconds() == None):
             break
         elif(int(schedule.idle_seconds()) > 86400):
+            schedule.run_all()
             break
         schedule.run_pending()
         time.sleep(1)
